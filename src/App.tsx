@@ -71,7 +71,9 @@ const initialData: VCardData = {
   addressCountry: '',
 }
 
-function generateVCard(data: VCardData): string {
+function generateVCard(data: VCardData, options?: { includePhoto?: boolean }): string {
+  const includePhoto = options?.includePhoto ?? true
+  
   const lines: string[] = [
     'BEGIN:VCARD',
     'VERSION:3.0',
@@ -97,7 +99,8 @@ function generateVCard(data: VCardData): string {
     lines.push(`ADR;TYPE=WORK:;;${data.addressStreet};${data.addressCity};${data.addressState};${data.addressZip};${data.addressCountry}`)
   }
 
-  if (data.photo) {
+  // Only include photo if requested (QR codes can't handle large base64 data)
+  if (includePhoto && data.photo) {
     const base64Match = data.photo.match(/^data:image\/(\w+);base64,(.+)$/)
     if (base64Match) {
       const [, imageType, base64Data] = base64Match
@@ -437,7 +440,9 @@ function App() {
     setTimeout(() => setCopied(false), 2000)
   }, [data])
 
-  const vCardDataUrl = `data:text/vcard;base64,${btoa(generateVCard(data))}`
+  // QR code uses photo-less vCard (base64 photos are too large for QR codes)
+  const vCardForQR = generateVCard(data, { includePhoto: false })
+  const vCardDataUrl = `data:text/vcard;base64,${btoa(vCardForQR)}`
 
   const steps = [
     { num: 1, label: 'Basic Info' },
