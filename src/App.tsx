@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   User,
@@ -160,15 +160,35 @@ function PhotoUpload({
   onPhotoChange: (photo: string | null) => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const mountedRef = useRef(true)
+
+  // Track mounted state to prevent updates after unmount
+  useEffect(() => {
+    mountedRef.current = true
+    return () => {
+      mountedRef.current = false
+    }
+  }, [])
 
   const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      const reader = new FileReader()
-      reader.onload = () => {
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = () => {
+      // Only update state if still mounted
+      if (mountedRef.current) {
         onPhotoChange(reader.result as string)
       }
-      reader.readAsDataURL(file)
+    }
+    reader.onerror = () => {
+      console.error('Failed to read file')
+    }
+    reader.readAsDataURL(file)
+
+    // Reset input so same file can be selected again
+    if (e.target) {
+      e.target.value = ''
     }
   }, [onPhotoChange])
 
