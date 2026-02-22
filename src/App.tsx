@@ -17,7 +17,16 @@ import {
   Check,
   Copy,
   QrCode,
+  MessageSquare,
+  Smartphone,
 } from 'lucide-react'
+
+// DonorElevate Brand Colors
+const BRAND = {
+  indigo: '#2A2D59',
+  blue: '#7393CC',
+  white: '#FFFFFF',
+}
 
 interface VCardData {
   photo: string | null
@@ -88,7 +97,6 @@ function generateVCard(data: VCardData): string {
   }
 
   if (data.photo) {
-    // Extract base64 data from data URL
     const base64Match = data.photo.match(/^data:image\/(\w+);base64,(.+)$/)
     if (base64Match) {
       const [, imageType, base64Data] = base64Match
@@ -119,17 +127,17 @@ function InputField({
 
   return (
     <div className="group">
-      <label className="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-teal-400">
+      <label className="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-[#7393CC]">
         {label}
       </label>
       <div
         className={`relative flex items-center rounded-xl border bg-white/5 backdrop-blur-sm transition-all duration-300 ${
           focused
-            ? 'border-teal-400 ring-2 ring-teal-400/20 bg-white/10'
+            ? 'border-[#7393CC] ring-2 ring-[#7393CC]/20 bg-white/10'
             : 'border-white/10 hover:border-white/20'
         }`}
       >
-        <Icon className={`absolute left-3 w-5 h-5 transition-colors ${focused ? 'text-teal-400' : 'text-slate-500'}`} />
+        <Icon className={`absolute left-3 w-5 h-5 transition-colors ${focused ? 'text-[#7393CC]' : 'text-slate-500'}`} />
         <input
           type={type}
           value={value}
@@ -170,8 +178,8 @@ function PhotoUpload({
         onClick={() => fileInputRef.current?.click()}
         className={`relative w-32 h-32 rounded-full cursor-pointer overflow-hidden transition-all duration-300 ${
           photo
-            ? 'ring-4 ring-teal-400/50 hover:ring-teal-400'
-            : 'border-2 border-dashed border-white/20 hover:border-teal-400/50 bg-white/5'
+            ? 'ring-4 ring-[#7393CC]/50 hover:ring-[#7393CC]'
+            : 'border-2 border-dashed border-white/20 hover:border-[#7393CC]/50 bg-white/5'
         }`}
       >
         {photo ? (
@@ -182,7 +190,7 @@ function PhotoUpload({
             </div>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 hover:text-teal-400 transition-colors">
+          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 hover:text-[#7393CC] transition-colors">
             <Upload className="w-8 h-8 mb-2" />
             <span className="text-xs">Upload Photo</span>
           </div>
@@ -218,15 +226,15 @@ function VCardPreview({ data }: { data: VCardData }) {
     <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 space-y-4">
       <div className="flex items-center gap-4">
         {data.photo ? (
-          <img src={data.photo} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-teal-400/50" />
+          <img src={data.photo} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-[#7393CC]/50" />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-purple-500 to-teal-500 flex items-center justify-center text-2xl font-bold">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#2A2D59] to-[#7393CC] flex items-center justify-center text-2xl font-bold">
             {data.firstName?.[0] || data.lastName?.[0] || '?'}
           </div>
         )}
         <div>
           <h3 className="text-xl font-bold text-white">{fullName || 'Your Name'}</h3>
-          {data.title && <p className="text-teal-400">{data.title}</p>}
+          {data.title && <p className="text-[#7393CC]">{data.title}</p>}
           {data.organization && <p className="text-slate-400 text-sm">{data.organization}</p>}
         </div>
       </div>
@@ -234,39 +242,39 @@ function VCardPreview({ data }: { data: VCardData }) {
       <div className="space-y-2 text-sm">
         {data.phoneMobile && (
           <div className="flex items-center gap-2 text-slate-300">
-            <Phone className="w-4 h-4 text-teal-400" />
+            <Phone className="w-4 h-4 text-[#7393CC]" />
             <span>{data.phoneMobile}</span>
             <span className="text-xs text-slate-500">Mobile</span>
           </div>
         )}
         {data.phoneWork && (
           <div className="flex items-center gap-2 text-slate-300">
-            <Phone className="w-4 h-4 text-purple-400" />
+            <Phone className="w-4 h-4 text-[#7393CC]" />
             <span>{data.phoneWork}</span>
             <span className="text-xs text-slate-500">Work</span>
           </div>
         )}
         {data.emailPrimary && (
           <div className="flex items-center gap-2 text-slate-300">
-            <Mail className="w-4 h-4 text-teal-400" />
+            <Mail className="w-4 h-4 text-[#7393CC]" />
             <span>{data.emailPrimary}</span>
           </div>
         )}
         {data.website && (
           <div className="flex items-center gap-2 text-slate-300">
-            <Globe className="w-4 h-4 text-purple-400" />
+            <Globe className="w-4 h-4 text-[#7393CC]" />
             <span>{data.website}</span>
           </div>
         )}
         {data.linkedin && (
           <div className="flex items-center gap-2 text-slate-300">
-            <Linkedin className="w-4 h-4 text-blue-400" />
+            <Linkedin className="w-4 h-4 text-[#7393CC]" />
             <span>{data.linkedin}</span>
           </div>
         )}
         {(data.addressStreet || data.addressCity) && (
           <div className="flex items-start gap-2 text-slate-300">
-            <MapPin className="w-4 h-4 text-teal-400 mt-0.5" />
+            <MapPin className="w-4 h-4 text-[#7393CC] mt-0.5" />
             <span>
               {[data.addressStreet, data.addressCity, data.addressState, data.addressZip]
                 .filter(Boolean)
@@ -279,11 +287,110 @@ function VCardPreview({ data }: { data: VCardData }) {
   )
 }
 
+// iPhone Contact Card Preview
+function IPhoneContactPreview({ data }: { data: VCardData }) {
+  const fullName = `${data.firstName} ${data.lastName}`.trim()
+
+  return (
+    <div className="bg-[#1c1c1e] rounded-3xl overflow-hidden border border-white/10" style={{ maxWidth: '280px' }}>
+      {/* iOS Status Bar */}
+      <div className="flex items-center justify-between px-6 py-2 text-white text-xs">
+        <span>9:41</span>
+        <div className="flex items-center gap-1">
+          <span>📶</span>
+          <span>🔋</span>
+        </div>
+      </div>
+      
+      {/* Contact Header */}
+      <div className="px-4 pb-4 text-center">
+        {data.photo ? (
+          <img src={data.photo} alt="" className="w-24 h-24 rounded-full object-cover mx-auto mb-3" />
+        ) : (
+          <div className="w-24 h-24 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-3xl font-semibold text-white mx-auto mb-3">
+            {data.firstName?.[0] || data.lastName?.[0] || '?'}
+          </div>
+        )}
+        <h3 className="text-xl font-semibold text-white">{fullName || 'New Contact'}</h3>
+        {data.title && <p className="text-gray-400 text-sm">{data.title}</p>}
+        {data.organization && <p className="text-gray-500 text-sm">{data.organization}</p>}
+      </div>
+
+      {/* Contact Actions */}
+      <div className="flex justify-center gap-6 pb-4">
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full bg-[#2c2c2e] flex items-center justify-center">
+            <MessageSquare className="w-5 h-5 text-[#007AFF]" />
+          </div>
+          <span className="text-[10px] text-[#007AFF] mt-1">message</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full bg-[#2c2c2e] flex items-center justify-center">
+            <Phone className="w-5 h-5 text-[#30D158]" />
+          </div>
+          <span className="text-[10px] text-[#30D158] mt-1">call</span>
+        </div>
+        <div className="flex flex-col items-center">
+          <div className="w-10 h-10 rounded-full bg-[#2c2c2e] flex items-center justify-center">
+            <Mail className="w-5 h-5 text-[#007AFF]" />
+          </div>
+          <span className="text-[10px] text-[#007AFF] mt-1">mail</span>
+        </div>
+      </div>
+
+      {/* Contact Details */}
+      <div className="bg-[#2c2c2e] mx-3 rounded-xl mb-4 divide-y divide-white/5">
+        {data.phoneMobile && (
+          <div className="px-4 py-3">
+            <p className="text-[#007AFF] text-sm">{data.phoneMobile}</p>
+            <p className="text-gray-500 text-xs">mobile</p>
+          </div>
+        )}
+        {data.emailPrimary && (
+          <div className="px-4 py-3">
+            <p className="text-[#007AFF] text-sm">{data.emailPrimary}</p>
+            <p className="text-gray-500 text-xs">email</p>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// iMessage Preview
+function IMessagePreview({ data }: { data: VCardData }) {
+  const fullName = `${data.firstName} ${data.lastName}`.trim()
+
+  return (
+    <div className="bg-[#1c1c1e] rounded-2xl overflow-hidden border border-white/10 p-3" style={{ maxWidth: '280px' }}>
+      {/* Message bubble */}
+      <div className="bg-[#2c2c2e] rounded-2xl p-3">
+        {/* Contact card preview in message */}
+        <div className="flex items-center gap-3 bg-[#3a3a3c] rounded-xl p-3">
+          {data.photo ? (
+            <img src={data.photo} alt="" className="w-12 h-12 rounded-full object-cover" />
+          ) : (
+            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-gray-400 to-gray-500 flex items-center justify-center text-lg font-semibold text-white">
+              {data.firstName?.[0] || data.lastName?.[0] || '?'}
+            </div>
+          )}
+          <div className="flex-1 min-w-0">
+            <p className="text-white font-medium truncate">{fullName || 'Contact'}</p>
+            {data.organization && <p className="text-gray-400 text-sm truncate">{data.organization}</p>}
+          </div>
+        </div>
+        <p className="text-gray-400 text-xs mt-2 text-center">Contact Card</p>
+      </div>
+      <p className="text-gray-500 text-xs text-center mt-2">Tap to add to contacts</p>
+    </div>
+  )
+}
+
 function App() {
   const [data, setData] = useState<VCardData>(initialData)
   const [step, setStep] = useState(1)
-  const [showQR, setShowQR] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [previewMode, setPreviewMode] = useState<'card' | 'iphone' | 'imessage'>('card')
 
   const updateField = useCallback(<K extends keyof VCardData>(field: K, value: VCardData[K]) => {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -325,11 +432,11 @@ function App() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-purple-500/20 to-teal-500/20 border border-white/10 mb-4">
-            <Sparkles className="w-4 h-4 text-teal-400" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#2A2D59]/40 to-[#7393CC]/20 border border-white/10 mb-4">
+            <Sparkles className="w-4 h-4 text-[#7393CC]" />
             <span className="text-sm text-slate-300">Create beautiful contact cards</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white via-purple-200 to-teal-200 bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white via-[#7393CC] to-white bg-clip-text text-transparent mb-4">
             vCard Creator
           </h1>
           <p className="text-slate-400 max-w-md mx-auto">
@@ -348,9 +455,9 @@ function App() {
                     onClick={() => setStep(s.num)}
                     className={`relative flex items-center justify-center w-10 h-10 rounded-full font-semibold transition-all duration-300 ${
                       step === s.num
-                        ? 'bg-gradient-to-r from-purple-500 to-teal-500 text-white scale-110'
+                        ? 'bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white scale-110'
                         : step > s.num
-                        ? 'bg-teal-500/20 text-teal-400 border border-teal-500/30'
+                        ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
                         : 'bg-white/5 text-slate-500 border border-white/10'
                     }`}
                   >
@@ -359,7 +466,7 @@ function App() {
                   {i < steps.length - 1 && (
                     <div
                       className={`w-12 sm:w-20 h-0.5 mx-2 transition-colors ${
-                        step > s.num ? 'bg-teal-500/50' : 'bg-white/10'
+                        step > s.num ? 'bg-[#7393CC]/50' : 'bg-white/10'
                       }`}
                     />
                   )}
@@ -373,7 +480,7 @@ function App() {
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <User className="w-5 h-5 text-teal-400" />
+                    <User className="w-5 h-5 text-[#7393CC]" />
                     Basic Information
                   </h2>
                   <PhotoUpload
@@ -417,7 +524,7 @@ function App() {
               {step === 2 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-teal-400" />
+                    <Phone className="w-5 h-5 text-[#7393CC]" />
                     Contact Details
                   </h2>
                   <InputField
@@ -467,7 +574,7 @@ function App() {
               {step === 3 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-teal-400" />
+                    <Globe className="w-5 h-5 text-[#7393CC]" />
                     Social & Web
                   </h2>
                   <InputField
@@ -498,7 +605,7 @@ function App() {
               {step === 4 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
                   <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-teal-400" />
+                    <MapPin className="w-5 h-5 text-[#7393CC]" />
                     Address (Optional)
                   </h2>
                   <InputField
@@ -555,7 +662,7 @@ function App() {
                 {step < 4 ? (
                   <button
                     onClick={() => setStep((s) => Math.min(4, s + 1))}
-                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-teal-500 text-white font-medium hover:opacity-90 transition-opacity"
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white font-medium hover:opacity-90 transition-opacity"
                   >
                     Next
                   </button>
@@ -563,7 +670,7 @@ function App() {
                   <button
                     onClick={handleDownload}
                     disabled={!isComplete}
-                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-teal-500 text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white font-medium hover:opacity-90 transition-opacity flex items-center gap-2 disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <Download className="w-4 h-4" />
                     Download vCard
@@ -577,44 +684,77 @@ function App() {
           <div className="space-y-6">
             <div className="sticky top-8">
               <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-teal-400" />
+                <Sparkles className="w-5 h-5 text-[#7393CC]" />
                 Live Preview
               </h2>
 
-              <VCardPreview data={data} />
+              {/* Preview Mode Tabs */}
+              <div className="flex gap-2 mb-4">
+                <button
+                  onClick={() => setPreviewMode('card')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    previewMode === 'card'
+                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <User className="w-4 h-4" />
+                  Card
+                </button>
+                <button
+                  onClick={() => setPreviewMode('iphone')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    previewMode === 'iphone'
+                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <Smartphone className="w-4 h-4" />
+                  iPhone
+                </button>
+                <button
+                  onClick={() => setPreviewMode('imessage')}
+                  className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
+                    previewMode === 'imessage'
+                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
+                      : 'text-slate-400 hover:text-white'
+                  }`}
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  iMessage
+                </button>
+              </div>
 
-              {/* QR Code Section */}
+              {/* Preview Content */}
+              <div className="flex justify-center">
+                {previewMode === 'card' && <VCardPreview data={data} />}
+                {previewMode === 'iphone' && <IPhoneContactPreview data={data} />}
+                {previewMode === 'imessage' && <IMessagePreview data={data} />}
+              </div>
+
+              {/* QR Code Section - Always visible when there's data */}
               <div className="mt-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-semibold text-white flex items-center gap-2">
-                    <QrCode className="w-5 h-5 text-teal-400" />
-                    QR Code
-                  </h3>
-                  <button
-                    onClick={() => setShowQR(!showQR)}
-                    className="text-sm text-teal-400 hover:text-teal-300 transition-colors"
-                  >
-                    {showQR ? 'Hide' : 'Show'}
-                  </button>
-                </div>
+                <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
+                  <QrCode className="w-5 h-5 text-[#7393CC]" />
+                  QR Code
+                </h3>
 
-                {showQR && isComplete && (
-                  <div className="flex flex-col items-center animate-in fade-in duration-300">
+                {isComplete ? (
+                  <div className="flex flex-col items-center">
                     <div className="bg-white p-4 rounded-xl">
                       <QRCodeSVG
                         value={vCardDataUrl}
                         size={180}
                         level="M"
                         includeMargin={false}
+                        fgColor={BRAND.indigo}
                       />
                     </div>
                     <p className="text-xs text-slate-400 mt-3 text-center">
                       Scan to add contact to your phone
                     </p>
                   </div>
-                )}
-
-                {showQR && !isComplete && (
+                ) : (
                   <p className="text-sm text-slate-500 text-center py-8">
                     Enter at least a name to generate QR code
                   </p>
@@ -626,7 +766,7 @@ function App() {
                 <button
                   onClick={handleDownload}
                   disabled={!isComplete}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-purple-500 to-teal-500 text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white font-medium hover:opacity-90 transition-opacity disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   <Download className="w-5 h-5" />
                   Download .vcf
@@ -638,7 +778,7 @@ function App() {
                 >
                   {copied ? (
                     <>
-                      <Check className="w-5 h-5 text-teal-400" />
+                      <Check className="w-5 h-5 text-[#7393CC]" />
                       Copied!
                     </>
                   ) : (
@@ -658,7 +798,7 @@ function App() {
                     href="https://donorelevate.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-teal-400 hover:text-teal-300 transition-colors"
+                    className="text-[#7393CC] hover:text-[#7393CC]/80 transition-colors"
                   >
                     DonorElevate
                   </a>
