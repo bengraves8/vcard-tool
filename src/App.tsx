@@ -20,6 +20,7 @@ import {
   MessageSquare,
   Smartphone,
 } from 'lucide-react'
+import ShareLink from './components/ShareLink'
 
 // DonorElevate Brand Colors
 const BRAND = {
@@ -759,6 +760,11 @@ function App() {
                     Enter at least a name to generate QR code
                   </p>
                 )}
+              </div>
+
+              {/* Shareable Link with Tracking */}
+              <div className="mt-6">
+                <ShareLink data={data} isComplete={!!isComplete} />
               </div>
 
               {/* Action Buttons */}
