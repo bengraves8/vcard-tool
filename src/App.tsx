@@ -458,6 +458,11 @@ function App() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
+          <img 
+            src="/logo-mark-white.png" 
+            alt="DonorElevate" 
+            className="w-16 h-16 mx-auto mb-4"
+          />
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#2A2D59]/40 to-[#7393CC]/20 border border-white/10 mb-4">
             <Sparkles className="w-4 h-4 text-[#7393CC]" />
             <span className="text-sm text-slate-300">Create beautiful contact cards</span>
