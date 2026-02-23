@@ -180,17 +180,45 @@ function PhotoUpload({
 
     const reader = new FileReader()
     reader.onload = () => {
-      // Only update state if still mounted
-      if (mountedRef.current) {
-        onPhotoChange(reader.result as string)
+      const img = new Image()
+      img.onload = () => {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+        if (!ctx) return
+
+        const maxSize = 800
+        let width = img.width
+        let height = img.height
+
+        if (width > height) {
+          if (width > maxSize) {
+            height = (height * maxSize) / width
+            width = maxSize
+          }
+        } else {
+          if (height > maxSize) {
+            width = (width * maxSize) / height
+            height = maxSize
+          }
+        }
+
+        canvas.width = width
+        canvas.height = height
+        ctx.drawImage(img, 0, 0, width, height)
+
+        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.85)
+
+        if (mountedRef.current) {
+          onPhotoChange(compressedDataUrl)
+        }
       }
+      img.src = reader.result as string
     }
     reader.onerror = () => {
       console.error('Failed to read file')
     }
     reader.readAsDataURL(file)
 
-    // Reset input so same file can be selected again
     if (e.target) {
       e.target.value = ''
     }
