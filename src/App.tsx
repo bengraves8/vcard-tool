@@ -444,6 +444,7 @@ function App() {
   const [step, setStep] = useState(1)
   const [copied, setCopied] = useState(false)
   const [previewMode, setPreviewMode] = useState<'card' | 'iphone' | 'imessage'>('card')
+  const [shareableUrl, setShareableUrl] = useState<string | null>(null)
 
   const updateField = useCallback(<K extends keyof VCardData>(field: K, value: VCardData[K]) => {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -469,9 +470,9 @@ function App() {
     setTimeout(() => setCopied(false), 2000)
   }, [data])
 
-  // QR code uses photo-less vCard (base64 photos are too large for QR codes)
+  // QR code uses shareable URL if available, otherwise raw vCard text
   const vCardForQR = generateVCard(data, { includePhoto: false })
-  const vCardDataUrl = `data:text/vcard;base64,${btoa(vCardForQR)}`
+  const qrCodeValue = shareableUrl || vCardForQR
 
   const steps = [
     { num: 1, label: 'Basic Info' },
@@ -803,7 +804,7 @@ function App() {
                   <div className="flex flex-col items-center">
                     <div className="bg-white p-4 rounded-xl">
                       <QRCodeSVG
-                        value={vCardDataUrl}
+                        value={qrCodeValue}
                         size={180}
                         level="M"
                         includeMargin={false}
@@ -811,8 +812,13 @@ function App() {
                       />
                     </div>
                     <p className="text-xs text-slate-400 mt-3 text-center">
-                      Scan to add contact to your phone
+                      {shareableUrl ? 'Scan to view and save contact' : 'Scan to add contact to your phone'}
                     </p>
+                    {!shareableUrl && (
+                      <p className="text-xs text-[#7393CC] mt-2 text-center">
+                        Tip: Generate a share link for better compatibility
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <p className="text-sm text-slate-500 text-center py-8">
@@ -823,7 +829,11 @@ function App() {
 
               {/* Shareable Link with Tracking */}
               <div className="mt-6">
-                <ShareLink data={data} isComplete={!!isComplete} />
+                <ShareLink
+                  data={data}
+                  isComplete={!!isComplete}
+                  onUrlGenerated={setShareableUrl}
+                />
               </div>
 
               {/* Action Buttons */}

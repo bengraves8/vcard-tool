@@ -27,6 +27,7 @@ interface VCardData {
 interface ShareLinkProps {
   data: VCardData
   isComplete: boolean
+  onUrlGenerated?: (url: string | null) => void
 }
 
 interface SavedVCard {
@@ -34,7 +35,7 @@ interface SavedVCard {
   id: string
 }
 
-export default function ShareLink({ data, isComplete }: ShareLinkProps) {
+export default function ShareLink({ data, isComplete, onUrlGenerated }: ShareLinkProps) {
   const [saving, setSaving] = useState(false)
   const [savedVCard, setSavedVCard] = useState<SavedVCard | null>(null)
   const [copied, setCopied] = useState(false)
@@ -85,6 +86,8 @@ export default function ShareLink({ data, isComplete }: ShareLinkProps) {
       }
 
       setSavedVCard(inserted)
+      const url = `${window.location.origin}/c/${inserted.shortcode}`
+      onUrlGenerated?.(url)
     } catch (err) {
       console.error('Failed to create share link:', err)
       setError('Failed to create share link. Please try again.')
@@ -202,7 +205,10 @@ export default function ShareLink({ data, isComplete }: ShareLinkProps) {
 
           {/* Create another */}
           <button
-            onClick={() => setSavedVCard(null)}
+            onClick={() => {
+              setSavedVCard(null)
+              onUrlGenerated?.(null)
+            }}
             className="w-full text-sm text-slate-400 hover:text-white transition-colors"
           >
             Create another link
