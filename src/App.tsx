@@ -186,7 +186,7 @@ function PhotoUpload({
         const ctx = canvas.getContext('2d')
         if (!ctx) return
 
-        const maxSize = 150
+        const maxSize = 80
         let width = img.width
         let height = img.height
 
