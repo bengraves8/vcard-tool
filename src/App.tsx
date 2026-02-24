@@ -186,7 +186,7 @@ function PhotoUpload({
         const ctx = canvas.getContext('2d')
         if (!ctx) return
 
-        const maxSize = 200
+        const maxSize = 150
         let width = img.width
         let height = img.height
 
@@ -206,7 +206,7 @@ function PhotoUpload({
         canvas.height = height
         ctx.drawImage(img, 0, 0, width, height)
 
-        const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.6)
+        const compressedDataUrl = canvas.toDataURL('image/png')
 
         if (mountedRef.current) {
           onPhotoChange(compressedDataUrl)
