@@ -109,6 +109,7 @@ function generateVCard(data: VCardData, options?: { includePhoto?: boolean }): s
   }
 
   lines.push('END:VCARD')
+  lines.push('')
   return lines.join('\r\n')
 }
 

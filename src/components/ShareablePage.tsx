@@ -93,6 +93,7 @@ export default function ShareablePage() {
     }
 
     lines.push('END:VCARD')
+    lines.push('')
     return lines.join('\r\n')
   }, [vcard])
 
