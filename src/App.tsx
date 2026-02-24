@@ -19,8 +19,14 @@ import {
   QrCode,
   MessageSquare,
   Smartphone,
+  FolderOpen,
 } from 'lucide-react'
 import ShareLink from './components/ShareLink'
+import MyCards from './components/MyCards'
+import { supabase } from './lib/supabase'
+import { getSessionId, addSavedCard } from './lib/session'
+import { nanoid } from 'nanoid'
+import { downloadBrandedQRCode } from './lib/qrDownload'
 
 // DonorElevate Brand Colors
 const BRAND = {
@@ -445,6 +451,9 @@ function App() {
   const [copied, setCopied] = useState(false)
   const [previewMode, setPreviewMode] = useState<'card' | 'iphone' | 'imessage'>('card')
   const [shareableUrl, setShareableUrl] = useState<string | null>(null)
+  const [showMyCards, setShowMyCards] = useState(false)
+  const [currentCardId, setCurrentCardId] = useState<string | null>(null)
+  const qrCodeRef = useRef<SVGSVGElement>(null)
 
   const updateField = useCallback(<K extends keyof VCardData>(field: K, value: VCardData[K]) => {
     setData((prev) => ({ ...prev, [field]: value }))
@@ -469,6 +478,114 @@ function App() {
     setCopied(true)
     setTimeout(() => setCopied(false), 2000)
   }, [data])
+
+  const loadCard = useCallback((loadedData: VCardData) => {
+    setData(loadedData)
+    setStep(1)
+  }, [])
+
+  const handleDownloadQR = useCallback(() => {
+    if (qrCodeRef.current) {
+      downloadBrandedQRCode(qrCodeRef.current, data.firstName, data.lastName)
+    }
+  }, [data.firstName, data.lastName])
+
+  useEffect(() => {
+    if (!supabase || !data.firstName || !data.lastName) return
+
+    const timeoutId = setTimeout(async () => {
+      if (!supabase) return
+
+      const sessionId = getSessionId()
+
+      try {
+        if (currentCardId) {
+          const { error } = await supabase
+            .from('vcards')
+            .update({
+              session_id: sessionId,
+              first_name: data.firstName,
+              last_name: data.lastName,
+              title: data.title || null,
+              organization: data.organization || null,
+              phone_mobile: data.phoneMobile || null,
+              phone_work: data.phoneWork || null,
+              phone_fax: data.phoneFax || null,
+              email_primary: data.emailPrimary || null,
+              email_secondary: data.emailSecondary || null,
+              website: data.website || null,
+              linkedin: data.linkedin || null,
+              twitter: data.twitter || null,
+              photo_url: data.photo || null,
+              address_street: data.addressStreet || null,
+              address_city: data.addressCity || null,
+              address_state: data.addressState || null,
+              address_zip: data.addressZip || null,
+              address_country: data.addressCountry || null,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', currentCardId)
+
+          if (error) throw error
+
+          addSavedCard({
+            id: currentCardId,
+            shortcode: null,
+            firstName: data.firstName,
+            lastName: data.lastName,
+            organization: data.organization,
+            createdAt: new Date().toISOString(),
+          })
+        } else {
+          const shortcode = nanoid(8)
+          const { data: inserted, error } = await supabase
+            .from('vcards')
+            .insert({
+              session_id: sessionId,
+              shortcode,
+              first_name: data.firstName,
+              last_name: data.lastName,
+              title: data.title || null,
+              organization: data.organization || null,
+              phone_mobile: data.phoneMobile || null,
+              phone_work: data.phoneWork || null,
+              phone_fax: data.phoneFax || null,
+              email_primary: data.emailPrimary || null,
+              email_secondary: data.emailSecondary || null,
+              website: data.website || null,
+              linkedin: data.linkedin || null,
+              twitter: data.twitter || null,
+              photo_url: data.photo || null,
+              address_street: data.addressStreet || null,
+              address_city: data.addressCity || null,
+              address_state: data.addressState || null,
+              address_zip: data.addressZip || null,
+              address_country: data.addressCountry || null,
+            })
+            .select('id')
+            .single()
+
+          if (error) throw error
+
+          if (inserted) {
+            setCurrentCardId(inserted.id)
+            addSavedCard({
+              id: inserted.id,
+              shortcode: null,
+              firstName: data.firstName,
+              lastName: data.lastName,
+              organization: data.organization,
+              createdAt: new Date().toISOString(),
+            })
+          }
+        }
+      } catch (err) {
+        console.error('Auto-save failed:', err)
+      }
+    }, 2000)
+
+    return () => clearTimeout(timeoutId)
+  }, [data, currentCardId])
 
   // QR code uses shareable URL if available, otherwise raw vCard text
   const vCardForQR = generateVCard(data, { includePhoto: false })
@@ -500,9 +617,16 @@ function App() {
           <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white via-[#7393CC] to-white bg-clip-text text-transparent mb-4">
             vCard Creator
           </h1>
-          <p className="text-slate-400 max-w-md mx-auto">
+          <p className="text-slate-400 max-w-md mx-auto mb-6">
             Generate professional contact cards with QR codes. Share your info instantly.
           </p>
+          <button
+            onClick={() => setShowMyCards(true)}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+          >
+            <FolderOpen className="w-4 h-4" />
+            My Cards
+          </button>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
@@ -804,6 +928,7 @@ function App() {
                   <div className="flex flex-col items-center">
                     <div className="bg-white p-4 rounded-xl">
                       <QRCodeSVG
+                        ref={qrCodeRef}
                         value={qrCodeValue}
                         size={180}
                         level="M"
@@ -819,6 +944,13 @@ function App() {
                         Tip: Generate a share link for better compatibility
                       </p>
                     )}
+                    <button
+                      onClick={handleDownloadQR}
+                      className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                    >
+                      <Download className="w-4 h-4" />
+                      Download QR Code
+                    </button>
                   </div>
                 ) : (
                   <p className="text-sm text-slate-500 text-center py-8">
@@ -833,6 +965,7 @@ function App() {
                   data={data}
                   isComplete={!!isComplete}
                   onUrlGenerated={setShareableUrl}
+                  currentCardId={currentCardId}
                 />
               </div>
 
@@ -883,6 +1016,13 @@ function App() {
           </div>
         </div>
       </div>
+
+      {showMyCards && (
+        <MyCards
+          onLoadCard={loadCard}
+          onClose={() => setShowMyCards(false)}
+        />
+      )}
     </div>
   )
 }

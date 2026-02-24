@@ -28,6 +28,7 @@ interface ShareLinkProps {
   data: VCardData
   isComplete: boolean
   onUrlGenerated?: (url: string | null) => void
+  currentCardId?: string | null
 }
 
 interface SavedVCard {
@@ -35,7 +36,7 @@ interface SavedVCard {
   id: string
 }
 
-export default function ShareLink({ data, isComplete, onUrlGenerated }: ShareLinkProps) {
+export default function ShareLink({ data, isComplete, onUrlGenerated, currentCardId }: ShareLinkProps) {
   const [saving, setSaving] = useState(false)
   const [savedVCard, setSavedVCard] = useState<SavedVCard | null>(null)
   const [copied, setCopied] = useState(false)
@@ -53,7 +54,25 @@ export default function ShareLink({ data, isComplete, onUrlGenerated }: ShareLin
     setError(null)
 
     try {
-      const shortcode = nanoid(8) // Short, URL-friendly ID
+      if (currentCardId) {
+        const { data: existingCard, error: fetchError } = await supabase
+          .from('vcards')
+          .select('id, shortcode')
+          .eq('id', currentCardId)
+          .maybeSingle()
+
+        if (fetchError) throw fetchError
+
+        if (existingCard) {
+          setSavedVCard(existingCard)
+          const url = `${window.location.origin}/c/${existingCard.shortcode}`
+          onUrlGenerated?.(url)
+          setSaving(false)
+          return
+        }
+      }
+
+      const shortcode = nanoid(8)
 
       const { data: inserted, error: insertError } = await supabase
         .from('vcards')
