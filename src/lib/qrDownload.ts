@@ -7,12 +7,12 @@ export function downloadBrandedQRCode(
   const ctx = canvas.getContext('2d')
   if (!ctx) return
 
-  const qrSize = 400
-  const padding = 60
-  const headerHeight = 140
-  const footerHeight = 80
+  const qrSize = 300
+  const padding = 40
+  const headerHeight = 120
+  const footerHeight = 60
   const canvasWidth = qrSize + padding * 2
-  const canvasHeight = headerHeight + qrSize + footerHeight + padding
+  const canvasHeight = headerHeight + qrSize + footerHeight
 
   canvas.width = canvasWidth
   canvas.height = canvasHeight
@@ -24,19 +24,20 @@ export function downloadBrandedQRCode(
   logoImg.crossOrigin = 'anonymous'
 
   const renderQR = (withLogo: boolean, logoSize = 0, logoY = 0) => {
+    // Draw header with logo and text
     if (withLogo) {
       const logoX = (canvasWidth - logoSize) / 2
       ctx.drawImage(logoImg, logoX, logoY, logoSize, logoSize)
 
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 28px system-ui, -apple-system, sans-serif'
+      ctx.font = 'bold 22px system-ui, -apple-system, sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('DonorElevate', canvasWidth / 2, logoY + logoSize + 35)
+      ctx.fillText('DonorElevate', canvasWidth / 2, logoY + logoSize + 28)
     } else {
       ctx.fillStyle = '#ffffff'
-      ctx.font = 'bold 32px system-ui, -apple-system, sans-serif'
+      ctx.font = 'bold 24px system-ui, -apple-system, sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('DonorElevate', canvasWidth / 2, 60)
+      ctx.fillText('DonorElevate', canvasWidth / 2, 50)
     }
 
     const svgClone = qrSvgElement.cloneNode(true) as SVGSVGElement
@@ -50,15 +51,16 @@ export function downloadBrandedQRCode(
       const qrX = padding
       const qrY = headerHeight
 
+      // White background for QR code with smaller padding
       ctx.fillStyle = '#ffffff'
-      ctx.fillRect(qrX - 20, qrY - 20, qrSize + 40, qrSize + 40)
+      ctx.fillRect(qrX - 12, qrY - 12, qrSize + 24, qrSize + 24)
 
       ctx.drawImage(qrImg, qrX, qrY, qrSize, qrSize)
 
       ctx.fillStyle = '#94a3b8'
-      ctx.font = '18px system-ui, -apple-system, sans-serif'
+      ctx.font = '14px system-ui, -apple-system, sans-serif'
       ctx.textAlign = 'center'
-      ctx.fillText('Scan to save contact', canvasWidth / 2, qrY + qrSize + 50)
+      ctx.fillText('Scan to save contact', canvasWidth / 2, qrY + qrSize + 35)
 
       canvas.toBlob((blob) => {
         if (!blob) return
@@ -77,8 +79,8 @@ export function downloadBrandedQRCode(
   }
 
   logoImg.onload = () => {
-    const logoSize = 60
-    const logoY = padding / 2
+    const logoSize = 48
+    const logoY = 20
     renderQR(true, logoSize, logoY)
   }
 
