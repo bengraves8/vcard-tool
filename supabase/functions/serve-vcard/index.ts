@@ -74,9 +74,8 @@ function generateVCardString(vcard: VCardRecord): string {
   }
 
   lines.push('END:VCARD');
-  lines.push('');
 
-  return lines.join('\r\n');
+  return lines.join('\r\n') + '\r\n';
 }
 
 Deno.serve(async (req: Request) => {
