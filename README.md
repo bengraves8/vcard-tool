@@ -8,8 +8,8 @@ A beautiful, modern vCard creation tool for DonorElevate clients.
 
 - 📸 **Photo Upload** - Add a profile photo with live preview
 - 📝 **Complete Contact Info** - Name, title, organization, phones, emails
-- 🌐 **Social Links** - Website, LinkedIn, Twitter/X
-- 📍 **Address Support** - Full address with optional fields
+- 🌐 **Social Links** - Add, remove, and rename links (Website, LinkedIn, Twitter/X, booking pages, and more)
+- 📍 **Address Support** - Full address with an optional second line for apartments, suites, or buildings
 - 👀 **Live Preview** - See your vCard update as you type
 - 📥 **Download .vcf** - Generate downloadable vCard file
 - 📱 **QR Code** - Scan to instantly add contact
@@ -70,3 +70,11 @@ Generates standard vCard 3.0 format compatible with:
 ## License
 
 MIT © DonorElevate
+
+## Named links and second address line
+
+Before deploying this version, apply `supabase/migrations/20261002143612_address_line_two_and_named_links.sql` to the database. It adds `links` and `address_line2` without changing existing cards. Older cards use their existing website/social fields until edited; an empty links array preserves an intentional removal of all links.
+
+The editor, shared contact pages, and vCard downloads use these fields. Custom vCard link labels use the `X-ABLabel` extension; some contact apps may display a generic URL label instead.
+
+Run export and backward-compatibility checks with `node --test tests/vcard.test.mjs`.

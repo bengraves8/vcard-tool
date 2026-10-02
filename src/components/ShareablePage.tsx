@@ -1,8 +1,9 @@
+import { generateVCard, recordLinks, safeLinkUrl } from '../lib/vcard'
 import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import type { VCardRecord } from '../lib/supabase'
-import { Download, Phone, Mail, Globe, MapPin, Linkedin, Building2, User, CheckCircle } from 'lucide-react'
+import { Download, Phone, Mail, Globe, MapPin, Building2, User, CheckCircle } from 'lucide-react'
 
 // DonorElevate Brand Colors
 const BRAND = {
@@ -64,37 +65,25 @@ export default function ShareablePage() {
   const generateVCardString = useCallback(() => {
     if (!vcard) return ''
 
-    const lines: string[] = [
-      'BEGIN:VCARD',
-      'VERSION:3.0',
-      `N:${vcard.last_name};${vcard.first_name};;;`,
-      `FN:${vcard.first_name} ${vcard.last_name}`,
-    ]
-
-    if (vcard.organization) lines.push(`ORG:${vcard.organization}`)
-    if (vcard.title) lines.push(`TITLE:${vcard.title}`)
-    if (vcard.phone_mobile) lines.push(`TEL;TYPE=CELL:${vcard.phone_mobile}`)
-    if (vcard.phone_work) lines.push(`TEL;TYPE=WORK:${vcard.phone_work}`)
-    if (vcard.email_primary) lines.push(`EMAIL;TYPE=INTERNET,PREF:${vcard.email_primary}`)
-    if (vcard.email_secondary) lines.push(`EMAIL;TYPE=INTERNET:${vcard.email_secondary}`)
-    if (vcard.website) lines.push(`URL:${vcard.website}`)
-    if (vcard.linkedin) lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${vcard.linkedin}`)
-    if (vcard.twitter) lines.push(`X-SOCIALPROFILE;TYPE=twitter:${vcard.twitter}`)
-
-    if (vcard.address_street || vcard.address_city) {
-      lines.push(`ADR;TYPE=WORK:;;${vcard.address_street || ''};${vcard.address_city || ''};${vcard.address_state || ''};${vcard.address_zip || ''};${vcard.address_country || ''}`)
-    }
-
-    if (vcard.photo_url && vcard.photo_url.startsWith('data:image')) {
-      const match = vcard.photo_url.match(/^data:image\/(\w+);base64,(.+)$/)
-      if (match) {
-        lines.push(`PHOTO;ENCODING=b;TYPE=${match[1].toUpperCase()}:${match[2]}`)
-      }
-    }
-
-    lines.push('END:VCARD')
-    lines.push('')
-    return lines.join('\r\n')
+    return generateVCard({
+      photo: vcard.photo_url,
+      firstName: vcard.first_name,
+      lastName: vcard.last_name,
+      title: vcard.title || '',
+      organization: vcard.organization || '',
+      phoneMobile: vcard.phone_mobile || '',
+      phoneWork: vcard.phone_work || '',
+      phoneFax: vcard.phone_fax || '',
+      emailPrimary: vcard.email_primary || '',
+      emailSecondary: vcard.email_secondary || '',
+      links: recordLinks(vcard),
+      addressStreet: vcard.address_street || '',
+      addressLine2: vcard.address_line2 || '',
+      addressCity: vcard.address_city || '',
+      addressState: vcard.address_state || '',
+      addressZip: vcard.address_zip || '',
+      addressCountry: vcard.address_country || '',
+    })
   }, [vcard])
 
   // Handle save contact click
@@ -133,19 +122,19 @@ export default function ShareablePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="animate-pulse text-white">Loading...</div>
+      <div className="min-h-screen bg-page flex items-center justify-center">
+        <div className="animate-pulse text-foreground">Loading...</div>
       </div>
     )
   }
 
   if (error || !vcard) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">😕</div>
-          <h1 className="text-2xl font-bold text-white mb-2">Contact Not Found</h1>
-          <p className="text-slate-400">This link may have expired or been removed.</p>
+          <h1 className="text-2xl font-bold text-foreground mb-2">Contact Not Found</h1>
+          <p className="text-muted">This link may have expired or been removed.</p>
         </div>
       </div>
     )
@@ -154,10 +143,10 @@ export default function ShareablePage() {
   const fullName = `${vcard.first_name} ${vcard.last_name}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-page flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Card */}
-        <div className="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 overflow-hidden shadow-2xl">
+        <div className="bg-surface-hover backdrop-blur-xl rounded-3xl border border-outline-strong overflow-hidden shadow-2xl">
           {/* Header with gradient */}
           <div 
             className="h-24 relative"
@@ -165,11 +154,11 @@ export default function ShareablePage() {
           >
             {/* Photo */}
             <div className="absolute -bottom-12 left-1/2 -translate-x-1/2">
-              <div className="w-24 h-24 rounded-full border-4 border-slate-800 overflow-hidden bg-slate-700 flex items-center justify-center">
+              <div className="w-24 h-24 rounded-full border-4 border-outline overflow-hidden bg-panel flex items-center justify-center">
                 {vcard.photo_url ? (
                   <img src={vcard.photo_url} alt={fullName} className="w-full h-full object-cover" />
                 ) : (
-                  <User className="w-10 h-10 text-slate-400" />
+                  <User className="w-10 h-10 text-muted" />
                 )}
               </div>
             </div>
@@ -179,12 +168,12 @@ export default function ShareablePage() {
           <div className="pt-16 pb-8 px-6">
             {/* Name & Title */}
             <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-white">{fullName}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{fullName}</h1>
               {vcard.title && (
-                <p className="text-slate-300 mt-1">{vcard.title}</p>
+                <p className="text-secondary mt-1">{vcard.title}</p>
               )}
               {vcard.organization && (
-                <p className="text-slate-400 text-sm flex items-center justify-center gap-1 mt-1">
+                <p className="text-muted text-sm flex items-center justify-center gap-1 mt-1">
                   <Building2 className="w-4 h-4" />
                   {vcard.organization}
                 </p>
@@ -196,48 +185,36 @@ export default function ShareablePage() {
               {vcard.phone_mobile && (
                 <a 
                   href={`tel:${vcard.phone_mobile}`}
-                  className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-surface-hover transition-colors"
                 >
-                  <Phone className="w-5 h-5 text-[#7393CC]" />
-                  <span className="text-white">{vcard.phone_mobile}</span>
+                  <Phone className="w-5 h-5 text-accent" />
+                  <span className="text-foreground">{vcard.phone_mobile}</span>
                 </a>
               )}
               {vcard.email_primary && (
                 <a 
                   href={`mailto:${vcard.email_primary}`}
-                  className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
+                  className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-surface-hover transition-colors"
                 >
-                  <Mail className="w-5 h-5 text-[#7393CC]" />
-                  <span className="text-white text-sm">{vcard.email_primary}</span>
+                  <Mail className="w-5 h-5 text-accent" />
+                  <span className="text-foreground text-sm">{vcard.email_primary}</span>
                 </a>
               )}
-              {vcard.website && (
-                <a 
-                  href={vcard.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
-                >
-                  <Globe className="w-5 h-5 text-[#7393CC]" />
-                  <span className="text-white text-sm">{vcard.website.replace(/^https?:\/\//, '')}</span>
-                </a>
-              )}
-              {vcard.linkedin && (
-                <a 
-                  href={vcard.linkedin}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center gap-3 p-3 bg-white/5 rounded-xl hover:bg-white/10 transition-colors"
-                >
-                  <Linkedin className="w-5 h-5 text-[#7393CC]" />
-                  <span className="text-white text-sm">LinkedIn Profile</span>
-                </a>
-              )}
-              {(vcard.address_city || vcard.address_state) && (
-                <div className="flex items-center gap-3 p-3 bg-white/5 rounded-xl">
-                  <MapPin className="w-5 h-5 text-[#7393CC]" />
-                  <span className="text-white text-sm">
-                    {[vcard.address_city, vcard.address_state].filter(Boolean).join(', ')}
+              {recordLinks(vcard).map((link, index) => {
+                const href = safeLinkUrl(link.url)
+                if (!href) return null
+                return (
+                  <a key={index} href={href} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-surface-hover transition-colors">
+                    <Globe className="w-5 h-5 text-accent shrink-0" />
+                    <span className="text-foreground text-sm break-all">{link.label.trim() || link.url}</span>
+                  </a>
+                )
+              })}
+              {(vcard.address_street || vcard.address_line2 || vcard.address_city || vcard.address_state || vcard.address_zip || vcard.address_country) && (
+                <div className="flex items-center gap-3 p-3 bg-surface rounded-xl">
+                  <MapPin className="w-5 h-5 text-accent" />
+                  <span className="text-foreground text-sm">
+                    {[vcard.address_street, vcard.address_line2, vcard.address_city, vcard.address_state, vcard.address_zip, vcard.address_country].filter(Boolean).join(', ')}
                   </span>
                 </div>
               )}
@@ -249,7 +226,7 @@ export default function ShareablePage() {
               disabled={saved}
               className={`w-full py-4 rounded-xl font-semibold text-lg transition-all flex items-center justify-center gap-2 ${
                 saved
-                  ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                  ? 'bg-green-500/20 text-success border border-green-500/30'
                   : 'bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white hover:opacity-90 hover:scale-[1.02]'
               }`}
             >
@@ -267,7 +244,7 @@ export default function ShareablePage() {
             </button>
 
             {/* Trust indicator */}
-            <p className="text-center text-xs text-slate-500 mt-4">
+            <p className="text-center text-xs text-muted mt-4">
               Tap to save {vcard.first_name}'s contact info to your phone
             </p>
           </div>
@@ -279,7 +256,7 @@ export default function ShareablePage() {
             href="https://donorelevate.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
+            className="text-xs text-muted hover:text-muted transition-colors"
           >
             Powered by DonorElevate
           </a>

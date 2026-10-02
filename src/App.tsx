@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { initialData, generateVCard, safeLinkUrl, type VCardData } from './lib/vcard'
+import { useState, useId, useRef, useCallback, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
   User,
@@ -6,8 +7,8 @@ import {
   Phone,
   Mail,
   Globe,
-  Linkedin,
-  Twitter,
+  Plus,
+  Trash2,
   MapPin,
   Download,
   Upload,
@@ -35,90 +36,6 @@ const BRAND = {
   white: '#FFFFFF',
 }
 
-interface VCardData {
-  photo: string | null
-  firstName: string
-  lastName: string
-  title: string
-  organization: string
-  phoneMobile: string
-  phoneWork: string
-  phoneFax: string
-  emailPrimary: string
-  emailSecondary: string
-  website: string
-  linkedin: string
-  twitter: string
-  addressStreet: string
-  addressCity: string
-  addressState: string
-  addressZip: string
-  addressCountry: string
-}
-
-const initialData: VCardData = {
-  photo: null,
-  firstName: '',
-  lastName: '',
-  title: '',
-  organization: '',
-  phoneMobile: '',
-  phoneWork: '',
-  phoneFax: '',
-  emailPrimary: '',
-  emailSecondary: '',
-  website: '',
-  linkedin: '',
-  twitter: '',
-  addressStreet: '',
-  addressCity: '',
-  addressState: '',
-  addressZip: '',
-  addressCountry: '',
-}
-
-function generateVCard(data: VCardData, options?: { includePhoto?: boolean }): string {
-  const includePhoto = options?.includePhoto ?? true
-  
-  const lines: string[] = [
-    'BEGIN:VCARD',
-    'VERSION:3.0',
-  ]
-
-  if (data.firstName || data.lastName) {
-    lines.push(`N:${data.lastName};${data.firstName};;;`)
-    lines.push(`FN:${data.firstName} ${data.lastName}`.trim())
-  }
-
-  if (data.organization) lines.push(`ORG:${data.organization}`)
-  if (data.title) lines.push(`TITLE:${data.title}`)
-  if (data.phoneMobile) lines.push(`TEL;TYPE=CELL:${data.phoneMobile}`)
-  if (data.phoneWork) lines.push(`TEL;TYPE=WORK:${data.phoneWork}`)
-  if (data.phoneFax) lines.push(`TEL;TYPE=FAX:${data.phoneFax}`)
-  if (data.emailPrimary) lines.push(`EMAIL;TYPE=INTERNET,PREF:${data.emailPrimary}`)
-  if (data.emailSecondary) lines.push(`EMAIL;TYPE=INTERNET:${data.emailSecondary}`)
-  if (data.website) lines.push(`URL:${data.website}`)
-  if (data.linkedin) lines.push(`X-SOCIALPROFILE;TYPE=linkedin:${data.linkedin}`)
-  if (data.twitter) lines.push(`X-SOCIALPROFILE;TYPE=twitter:${data.twitter}`)
-
-  if (data.addressStreet || data.addressCity || data.addressState || data.addressZip || data.addressCountry) {
-    lines.push(`ADR;TYPE=WORK:;;${data.addressStreet};${data.addressCity};${data.addressState};${data.addressZip};${data.addressCountry}`)
-  }
-
-  // Only include photo if requested (QR codes can't handle large base64 data)
-  if (includePhoto && data.photo) {
-    const base64Match = data.photo.match(/^data:image\/(\w+);base64,(.+)$/)
-    if (base64Match) {
-      const [, imageType, base64Data] = base64Match
-      lines.push(`PHOTO;ENCODING=b;TYPE=${imageType.toUpperCase()}:${base64Data}`)
-    }
-  }
-
-  lines.push('END:VCARD')
-  lines.push('')
-  return lines.join('\r\n')
-}
-
 function InputField({
   icon: Icon,
   label,
@@ -134,29 +51,31 @@ function InputField({
   placeholder?: string
   type?: string
 }) {
+  const inputId = useId()
   const [focused, setFocused] = useState(false)
 
   return (
     <div className="group">
-      <label className="block text-sm font-medium text-slate-300 mb-1.5 transition-colors group-focus-within:text-[#7393CC]">
+      <label htmlFor={inputId} className="block text-sm font-medium text-secondary mb-1.5 transition-colors group-focus-within:text-accent">
         {label}
       </label>
       <div
-        className={`relative flex items-center rounded-xl border bg-white/5 backdrop-blur-sm transition-all duration-300 ${
+        className={`relative flex items-center rounded-xl border bg-surface backdrop-blur-sm transition-all duration-300 ${
           focused
-            ? 'border-[#7393CC] ring-2 ring-[#7393CC]/20 bg-white/10'
-            : 'border-white/10 hover:border-white/20'
+            ? 'border-[#7393CC] ring-2 ring-[#7393CC]/20 bg-surface-hover'
+            : 'border-outline hover:border-outline-strong'
         }`}
       >
-        <Icon className={`absolute left-3 w-5 h-5 transition-colors ${focused ? 'text-[#7393CC]' : 'text-slate-500'}`} />
+        <Icon className={`absolute left-3 w-5 h-5 transition-colors ${focused ? 'text-accent' : 'text-muted'}`} />
         <input
+          id={inputId}
           type={type}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          className="w-full bg-transparent pl-11 pr-4 py-3 text-white placeholder-slate-500 outline-none"
+          className="w-full bg-transparent pl-11 pr-4 py-3 text-foreground placeholder-slate-500 outline-none"
         />
       </div>
     </div>
@@ -238,7 +157,7 @@ function PhotoUpload({
         className={`relative w-32 h-32 rounded-full cursor-pointer overflow-hidden transition-all duration-300 ${
           photo
             ? 'ring-4 ring-[#7393CC]/50 hover:ring-[#7393CC]'
-            : 'border-2 border-dashed border-white/20 hover:border-[#7393CC]/50 bg-white/5'
+            : 'border-2 border-dashed border-outline-strong hover:border-[#7393CC]/50 bg-surface'
         }`}
       >
         {photo ? (
@@ -249,7 +168,7 @@ function PhotoUpload({
             </div>
           </>
         ) : (
-          <div className="w-full h-full flex flex-col items-center justify-center text-slate-500 hover:text-[#7393CC] transition-colors">
+          <div className="w-full h-full flex flex-col items-center justify-center text-muted hover:text-accent transition-colors">
             <Upload className="w-8 h-8 mb-2" />
             <span className="text-xs">Upload Photo</span>
           </div>
@@ -261,7 +180,7 @@ function PhotoUpload({
             e.stopPropagation()
             onPhotoChange(null)
           }}
-          className="mt-2 text-sm text-red-400 hover:text-red-300 transition-colors flex items-center gap-1"
+          className="mt-2 text-sm text-danger hover:text-red-300 transition-colors flex items-center gap-1"
         >
           <X className="w-4 h-4" />
           Remove
@@ -282,60 +201,54 @@ function VCardPreview({ data }: { data: VCardData }) {
   const fullName = `${data.firstName} ${data.lastName}`.trim()
 
   return (
-    <div className="bg-gradient-to-br from-slate-800/80 to-slate-900/80 backdrop-blur-xl rounded-2xl border border-white/10 p-6 space-y-4">
+    <div className="bg-panel backdrop-blur-xl rounded-2xl border border-outline p-6 space-y-4">
       <div className="flex items-center gap-4">
         {data.photo ? (
           <img src={data.photo} alt="" className="w-20 h-20 rounded-full object-cover ring-2 ring-[#7393CC]/50" />
         ) : (
-          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#2A2D59] to-[#7393CC] flex items-center justify-center text-2xl font-bold">
+          <div className="w-20 h-20 rounded-full bg-gradient-to-br from-[#2A2D59] to-[#7393CC] flex items-center justify-center text-2xl font-bold text-white">
             {data.firstName?.[0] || data.lastName?.[0] || '?'}
           </div>
         )}
         <div>
-          <h3 className="text-xl font-bold text-white">{fullName || 'Your Name'}</h3>
-          {data.title && <p className="text-[#7393CC]">{data.title}</p>}
-          {data.organization && <p className="text-slate-400 text-sm">{data.organization}</p>}
+          <h3 className="text-xl font-bold text-foreground">{fullName || 'Your Name'}</h3>
+          {data.title && <p className="text-accent">{data.title}</p>}
+          {data.organization && <p className="text-muted text-sm">{data.organization}</p>}
         </div>
       </div>
 
       <div className="space-y-2 text-sm">
         {data.phoneMobile && (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Phone className="w-4 h-4 text-[#7393CC]" />
+          <div className="flex items-center gap-2 text-secondary">
+            <Phone className="w-4 h-4 text-accent" />
             <span>{data.phoneMobile}</span>
-            <span className="text-xs text-slate-500">Mobile</span>
+            <span className="text-xs text-muted">Mobile</span>
           </div>
         )}
         {data.phoneWork && (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Phone className="w-4 h-4 text-[#7393CC]" />
+          <div className="flex items-center gap-2 text-secondary">
+            <Phone className="w-4 h-4 text-accent" />
             <span>{data.phoneWork}</span>
-            <span className="text-xs text-slate-500">Work</span>
+            <span className="text-xs text-muted">Work</span>
           </div>
         )}
         {data.emailPrimary && (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Mail className="w-4 h-4 text-[#7393CC]" />
+          <div className="flex items-center gap-2 text-secondary">
+            <Mail className="w-4 h-4 text-accent" />
             <span>{data.emailPrimary}</span>
           </div>
         )}
-        {data.website && (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Globe className="w-4 h-4 text-[#7393CC]" />
-            <span>{data.website}</span>
+        {data.links.filter((link) => link.url.trim()).map((link, index) => (
+          <div key={index} className="flex items-start gap-2 text-secondary min-w-0">
+            <Globe className="w-4 h-4 text-accent shrink-0 mt-0.5" />
+            <span className="break-all"><span className="font-medium">{link.label.trim() || 'Website'}: </span>{link.url}</span>
           </div>
-        )}
-        {data.linkedin && (
-          <div className="flex items-center gap-2 text-slate-300">
-            <Linkedin className="w-4 h-4 text-[#7393CC]" />
-            <span>{data.linkedin}</span>
-          </div>
-        )}
-        {(data.addressStreet || data.addressCity) && (
-          <div className="flex items-start gap-2 text-slate-300">
-            <MapPin className="w-4 h-4 text-[#7393CC] mt-0.5" />
+        ))}
+        {(data.addressStreet || data.addressLine2 || data.addressCity || data.addressState || data.addressZip || data.addressCountry) && (
+          <div className="flex items-start gap-2 text-secondary">
+            <MapPin className="w-4 h-4 text-accent mt-0.5" />
             <span>
-              {[data.addressStreet, data.addressCity, data.addressState, data.addressZip]
+              {[data.addressStreet, data.addressLine2, data.addressCity, data.addressState, data.addressZip, data.addressCountry]
                 .filter(Boolean)
                 .join(', ')}
             </span>
@@ -513,9 +426,8 @@ function App() {
               phone_fax: data.phoneFax || null,
               email_primary: data.emailPrimary || null,
               email_secondary: data.emailSecondary || null,
-              website: data.website || null,
-              linkedin: data.linkedin || null,
-              twitter: data.twitter || null,
+              links: data.links,
+              address_line2: data.addressLine2 || null,
               photo_url: data.photo || null,
               address_street: data.addressStreet || null,
               address_city: data.addressCity || null,
@@ -552,9 +464,8 @@ function App() {
               phone_fax: data.phoneFax || null,
               email_primary: data.emailPrimary || null,
               email_secondary: data.emailSecondary || null,
-              website: data.website || null,
-              linkedin: data.linkedin || null,
-              twitter: data.twitter || null,
+              links: data.links,
+              address_line2: data.addressLine2 || null,
               photo_url: data.photo || null,
               address_street: data.addressStreet || null,
               address_city: data.addressCity || null,
@@ -608,21 +519,21 @@ function App() {
           <img 
             src="/logo-mark-white.png" 
             alt="DonorElevate" 
-            className="w-16 h-16 mx-auto mb-4"
+            className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#2A2D59] p-2"
           />
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#2A2D59]/40 to-[#7393CC]/20 border border-white/10 mb-4">
-            <Sparkles className="w-4 h-4 text-[#7393CC]" />
-            <span className="text-sm text-slate-300">Create beautiful contact cards</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-[#2A2D59]/40 to-[#7393CC]/20 border border-outline mb-4">
+            <Sparkles className="w-4 h-4 text-accent" />
+            <span className="text-sm text-secondary">Create beautiful contact cards</span>
           </div>
-          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-white via-[#7393CC] to-white bg-clip-text text-transparent mb-4">
+          <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-heading via-accent to-heading bg-clip-text text-transparent mb-4">
             vCard Creator
           </h1>
-          <p className="text-slate-400 max-w-md mx-auto mb-6">
+          <p className="text-muted max-w-md mx-auto mb-6">
             Generate professional contact cards with QR codes. Share your info instantly.
           </p>
           <button
             onClick={() => setShowMyCards(true)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-white hover:bg-white/10 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-surface border border-outline text-foreground hover:bg-surface-hover transition-colors"
           >
             <FolderOpen className="w-4 h-4" />
             My Cards
@@ -642,8 +553,8 @@ function App() {
                       step === s.num
                         ? 'bg-gradient-to-r from-[#2A2D59] to-[#7393CC] text-white scale-110'
                         : step > s.num
-                        ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
-                        : 'bg-white/5 text-slate-500 border border-white/10'
+                        ? 'bg-[#7393CC]/20 text-accent border border-[#7393CC]/30'
+                        : 'bg-surface text-muted border border-outline'
                     }`}
                   >
                     {step > s.num ? <Check className="w-5 h-5" /> : s.num}
@@ -651,7 +562,7 @@ function App() {
                   {i < steps.length - 1 && (
                     <div
                       className={`w-12 sm:w-20 h-0.5 mx-2 transition-colors ${
-                        step > s.num ? 'bg-[#7393CC]/50' : 'bg-white/10'
+                        step > s.num ? 'bg-[#7393CC]/50' : 'bg-surface-hover'
                       }`}
                     />
                   )}
@@ -660,12 +571,12 @@ function App() {
             </div>
 
             {/* Form Card */}
-            <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 sm:p-8">
+            <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6 sm:p-8">
               {/* Step 1: Basic Info */}
               {step === 1 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
-                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <User className="w-5 h-5 text-[#7393CC]" />
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <User className="w-5 h-5 text-accent" />
                     Basic Information
                   </h2>
                   <PhotoUpload
@@ -708,8 +619,8 @@ function App() {
               {/* Step 2: Contact */}
               {step === 2 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
-                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <Phone className="w-5 h-5 text-[#7393CC]" />
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <Phone className="w-5 h-5 text-accent" />
                     Contact Details
                   </h2>
                   <InputField
@@ -758,39 +669,37 @@ function App() {
               {/* Step 3: Social */}
               {step === 3 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
-                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <Globe className="w-5 h-5 text-[#7393CC]" />
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <Globe className="w-5 h-5 text-accent" />
                     Social & Web
                   </h2>
-                  <InputField
-                    icon={Globe}
-                    label="Website"
-                    value={data.website}
-                    onChange={(v) => updateField('website', v)}
-                    placeholder="https://example.com"
-                  />
-                  <InputField
-                    icon={Linkedin}
-                    label="LinkedIn"
-                    value={data.linkedin}
-                    onChange={(v) => updateField('linkedin', v)}
-                    placeholder="https://linkedin.com/in/johndoe"
-                  />
-                  <InputField
-                    icon={Twitter}
-                    label="Twitter / X"
-                    value={data.twitter}
-                    onChange={(v) => updateField('twitter', v)}
-                    placeholder="https://x.com/johndoe"
-                  />
+                  <p className="text-sm text-muted">Add your links and choose the names shown on your card.</p>
+                  {data.links.map((link, index) => (
+                    <div key={index} className="space-y-3 rounded-xl border border-outline p-4">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-muted">Link {index + 1}</span>
+                        <button type="button" aria-label={`Remove link ${index + 1}`} onClick={() => updateField('links', data.links.filter((_, i) => i !== index))} className="p-2 rounded-lg text-muted hover:text-danger hover:bg-surface">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                      <InputField icon={Globe} label="Link name" value={link.label} placeholder="e.g. Schedule a meeting" onChange={(label) => updateField('links', data.links.map((item, i) => i === index ? { ...item, label } : item))} />
+                      <InputField icon={Globe} label="Link URL" value={link.url} placeholder="https://example.com" onChange={(url) => updateField('links', data.links.map((item, i) => i === index ? { ...item, url } : item))} />
+                      {link.url.trim() && !safeLinkUrl(link.url) && (
+                        <p role="alert" className="text-sm text-warning">Enter a valid web address. This link will not be included in downloads or shared cards until corrected.</p>
+                      )}
+                    </div>
+                  ))}
+                  <button type="button" onClick={() => updateField('links', [...data.links, { label: '', url: '' }])} className="flex items-center gap-2 px-4 py-2 rounded-xl border border-outline-strong text-foreground hover:bg-surface-hover">
+                    <Plus className="w-4 h-4" /> Add link
+                  </button>
                 </div>
               )}
 
               {/* Step 4: Address */}
               {step === 4 && (
                 <div className="space-y-6 animate-in fade-in duration-300">
-                  <h2 className="text-xl font-semibold text-white flex items-center gap-2">
-                    <MapPin className="w-5 h-5 text-[#7393CC]" />
+                  <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+                    <MapPin className="w-5 h-5 text-accent" />
                     Address (Optional)
                   </h2>
                   <InputField
@@ -799,6 +708,13 @@ function App() {
                     value={data.addressStreet}
                     onChange={(v) => updateField('addressStreet', v)}
                     placeholder="123 Main Street"
+                  />
+                  <InputField
+                    icon={MapPin}
+                    label="Address Line 2 (Optional)"
+                    value={data.addressLine2}
+                    onChange={(v) => updateField('addressLine2', v)}
+                    placeholder="Apartment, suite, unit, building, etc."
                   />
                   <div className="grid sm:grid-cols-2 gap-4">
                     <InputField
@@ -836,11 +752,11 @@ function App() {
               )}
 
               {/* Navigation */}
-              <div className="flex justify-between mt-8 pt-6 border-t border-white/10">
+              <div className="flex justify-between mt-8 pt-6 border-t border-outline">
                 <button
                   onClick={() => setStep((s) => Math.max(1, s - 1))}
                   disabled={step === 1}
-                  className="px-4 py-2 rounded-xl border border-white/10 text-slate-400 hover:text-white hover:border-white/20 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-xl border border-outline text-muted hover:text-foreground hover:border-outline-strong transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   Previous
                 </button>
@@ -868,8 +784,8 @@ function App() {
           {/* Preview Section */}
           <div className="space-y-6">
             <div className="sticky top-8">
-              <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-[#7393CC]" />
+              <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-accent" />
                 Live Preview
               </h2>
 
@@ -879,8 +795,8 @@ function App() {
                   onClick={() => setPreviewMode('card')}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     previewMode === 'card'
-                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#7393CC]/20 text-accent border border-[#7393CC]/30'
+                      : 'text-muted hover:text-foreground'
                   }`}
                 >
                   <User className="w-4 h-4" />
@@ -890,8 +806,8 @@ function App() {
                   onClick={() => setPreviewMode('iphone')}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     previewMode === 'iphone'
-                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#7393CC]/20 text-accent border border-[#7393CC]/30'
+                      : 'text-muted hover:text-foreground'
                   }`}
                 >
                   <Smartphone className="w-4 h-4" />
@@ -901,8 +817,8 @@ function App() {
                   onClick={() => setPreviewMode('imessage')}
                   className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm transition-colors ${
                     previewMode === 'imessage'
-                      ? 'bg-[#7393CC]/20 text-[#7393CC] border border-[#7393CC]/30'
-                      : 'text-slate-400 hover:text-white'
+                      ? 'bg-[#7393CC]/20 text-accent border border-[#7393CC]/30'
+                      : 'text-muted hover:text-foreground'
                   }`}
                 >
                   <MessageSquare className="w-4 h-4" />
@@ -918,9 +834,9 @@ function App() {
               </div>
 
               {/* QR Code Section - Always visible when there's data */}
-              <div className="mt-6 bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-                <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-                  <QrCode className="w-5 h-5 text-[#7393CC]" />
+              <div className="mt-6 bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+                <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                  <QrCode className="w-5 h-5 text-accent" />
                   QR Code
                 </h3>
 
@@ -936,24 +852,24 @@ function App() {
                         fgColor={BRAND.indigo}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 mt-3 text-center">
+                    <p className="text-xs text-muted mt-3 text-center">
                       {shareableUrl ? 'Scan to view and save contact' : 'Scan to add contact to your phone'}
                     </p>
                     {!shareableUrl && (
-                      <p className="text-xs text-[#7393CC] mt-2 text-center">
+                      <p className="text-xs text-accent mt-2 text-center">
                         Tip: Generate a share link for better compatibility
                       </p>
                     )}
                     <button
                       onClick={handleDownloadQR}
-                      className="mt-4 px-4 py-2 rounded-lg bg-white/5 border border-white/10 text-white text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                      className="mt-4 px-4 py-2 rounded-lg bg-surface border border-outline text-foreground text-sm hover:bg-surface-hover transition-colors flex items-center gap-2"
                     >
                       <Download className="w-4 h-4" />
                       Download QR Code
                     </button>
                   </div>
                 ) : (
-                  <p className="text-sm text-slate-500 text-center py-8">
+                  <p className="text-sm text-muted text-center py-8">
                     Enter at least a name to generate QR code
                   </p>
                 )}
@@ -982,11 +898,11 @@ function App() {
                 <button
                   onClick={copyVCard}
                   disabled={!isComplete}
-                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-white/10 text-white font-medium hover:bg-white/5 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                  className="flex items-center justify-center gap-2 px-4 py-3 rounded-xl border border-outline text-foreground font-medium hover:bg-surface transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-5 h-5 text-[#7393CC]" />
+                      <Check className="w-5 h-5 text-accent" />
                       Copied!
                     </>
                   ) : (
@@ -1000,13 +916,13 @@ function App() {
 
               {/* Branding */}
               <div className="mt-8 text-center">
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-muted">
                   Powered by{' '}
                   <a
                     href="https://donorelevate.com"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#7393CC] hover:text-[#7393CC]/80 transition-colors"
+                    className="text-accent hover:text-accent/80 transition-colors"
                   >
                     DonorElevate
                   </a>

@@ -1,28 +1,9 @@
+import { type VCardData } from '../lib/vcard'
 import { useState } from 'react'
 import { supabase } from '../lib/supabase'
 import { nanoid } from 'nanoid'
 import { Link, Copy, Check, ExternalLink, BarChart3 } from 'lucide-react'
 
-interface VCardData {
-  photo: string | null
-  firstName: string
-  lastName: string
-  title: string
-  organization: string
-  phoneMobile: string
-  phoneWork: string
-  phoneFax: string
-  emailPrimary: string
-  emailSecondary: string
-  website: string
-  linkedin: string
-  twitter: string
-  addressStreet: string
-  addressCity: string
-  addressState: string
-  addressZip: string
-  addressCountry: string
-}
 
 interface ShareLinkProps {
   data: VCardData
@@ -87,9 +68,8 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
           phone_fax: data.phoneFax || null,
           email_primary: data.emailPrimary || null,
           email_secondary: data.emailSecondary || null,
-          website: data.website || null,
-          linkedin: data.linkedin || null,
-          twitter: data.twitter || null,
+          links: data.links,
+          address_line2: data.addressLine2 || null,
           photo_url: data.photo || null,
           address_street: data.addressStreet || null,
           address_city: data.addressCity || null,
@@ -131,24 +111,24 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
   }
 
   return (
-    <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-      <h3 className="font-semibold text-white flex items-center gap-2 mb-4">
-        <Link className="w-5 h-5 text-[#7393CC]" />
+    <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+      <h3 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+        <Link className="w-5 h-5 text-accent" />
         Shareable Link
-        <span className="text-xs bg-[#7393CC]/20 text-[#7393CC] px-2 py-0.5 rounded-full ml-2">
+        <span className="text-xs bg-[#7393CC]/20 text-accent px-2 py-0.5 rounded-full ml-2">
           Tracked
         </span>
       </h3>
 
       {error && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-danger text-sm">
           {error}
         </div>
       )}
 
       {!savedVCard ? (
         <div>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-muted mb-4">
             Generate a trackable link that shows when recipients view or save your contact.
           </p>
           <button
@@ -173,12 +153,12 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
         <div className="space-y-4">
           {/* Link display */}
           <div className="flex gap-2">
-            <div className="flex-1 bg-slate-800 rounded-lg px-3 py-2 text-sm text-white font-mono truncate">
+            <div className="flex-1 bg-panel rounded-lg px-3 py-2 text-sm text-foreground font-mono truncate">
               {shareUrl}
             </div>
             <button
               onClick={copyLink}
-              className="px-3 py-2 rounded-lg bg-[#7393CC]/20 text-[#7393CC] hover:bg-[#7393CC]/30 transition-colors"
+              className="px-3 py-2 rounded-lg bg-[#7393CC]/20 text-accent hover:bg-[#7393CC]/30 transition-colors"
             >
               {copied ? <Check className="w-5 h-5" /> : <Copy className="w-5 h-5" />}
             </button>
@@ -190,14 +170,14 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
               href={shareUrl!}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-white/10 text-white text-sm hover:bg-white/5 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-outline text-foreground text-sm hover:bg-surface transition-colors"
             >
               <ExternalLink className="w-4 h-4" />
               Preview
             </a>
             <a
               href={`/analytics/${savedVCard.shortcode}`}
-              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-white/10 text-white text-sm hover:bg-white/5 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg border border-outline text-foreground text-sm hover:bg-surface transition-colors"
             >
               <BarChart3 className="w-4 h-4" />
               Analytics
@@ -205,9 +185,9 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
           </div>
 
           {/* SMS Template */}
-          <div className="mt-4 p-4 bg-slate-800/50 rounded-xl">
-            <p className="text-xs text-slate-400 mb-2">Suggested SMS message:</p>
-            <p className="text-sm text-white">
+          <div className="mt-4 p-4 bg-panel rounded-xl">
+            <p className="text-xs text-muted mb-2">Suggested SMS message:</p>
+            <p className="text-sm text-foreground">
               Hi! This is {data.firstName} from {data.organization || 'our organization'}. 
               Save my contact info here: {shareUrl}
             </p>
@@ -216,7 +196,7 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
                 const msg = `Hi! This is ${data.firstName} from ${data.organization || 'our organization'}. Save my contact info here: ${shareUrl}`
                 navigator.clipboard.writeText(msg)
               }}
-              className="mt-2 text-xs text-[#7393CC] hover:text-[#7393CC]/80 transition-colors"
+              className="mt-2 text-xs text-accent hover:text-accent/80 transition-colors"
             >
               Copy message
             </button>
@@ -228,7 +208,7 @@ export default function ShareLink({ data, isComplete, onUrlGenerated, currentCar
               setSavedVCard(null)
               onUrlGenerated?.(null)
             }}
-            className="w-full text-sm text-slate-400 hover:text-white transition-colors"
+            className="w-full text-sm text-muted hover:text-foreground transition-colors"
           >
             Create another link
           </button>

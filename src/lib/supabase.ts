@@ -1,3 +1,4 @@
+import type { ContactLink } from './vcard'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
@@ -22,6 +23,9 @@ export interface VCardRecord {
   phone_work: string | null
   email_primary: string | null
   email_secondary: string | null
+  links: ContactLink[] | null
+  address_line2: string | null
+  phone_fax: string | null
   website: string | null
   linkedin: string | null
   twitter: string | null

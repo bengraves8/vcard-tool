@@ -86,10 +86,10 @@ export default function AnalyticsPage() {
   const getEventIcon = (type: string) => {
     switch (type) {
       case 'page_view': return <Eye className="w-4 h-4 text-blue-400" />
-      case 'save_click': return <MousePointerClick className="w-4 h-4 text-green-400" />
+      case 'save_click': return <MousePointerClick className="w-4 h-4 text-success" />
       case 'download': return <Download className="w-4 h-4 text-purple-400" />
       case 'qr_scan': return <QrCode className="w-4 h-4 text-orange-400" />
-      default: return <Clock className="w-4 h-4 text-slate-400" />
+      default: return <Clock className="w-4 h-4 text-muted" />
     }
   }
 
@@ -114,20 +114,20 @@ export default function AnalyticsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
-        <div className="animate-pulse text-white">Loading analytics...</div>
+      <div className="min-h-screen bg-page flex items-center justify-center">
+        <div className="animate-pulse text-foreground">Loading analytics...</div>
       </div>
     )
   }
 
   if (error || !stats) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+      <div className="min-h-screen bg-page flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">📊</div>
-          <h1 className="text-2xl font-bold text-white mb-2">Analytics Not Found</h1>
-          <p className="text-slate-400 mb-6">{error}</p>
-          <Link to="/" className="text-[#7393CC] hover:underline">
+          <h1 className="text-2xl font-bold text-foreground mb-2">Analytics Not Found</h1>
+          <p className="text-muted mb-6">{error}</p>
+          <Link to="/" className="text-accent hover:underline">
             ← Back to vCard Creator
           </Link>
         </div>
@@ -138,70 +138,70 @@ export default function AnalyticsPage() {
   const shareUrl = `${window.location.origin}/c/${stats.shortcode}`
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-6">
+    <div className="min-h-screen bg-page p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors mb-4">
+          <Link to="/" className="inline-flex items-center gap-2 text-muted hover:text-foreground transition-colors mb-4">
             <ArrowLeft className="w-4 h-4" />
             Back to Creator
           </Link>
-          <h1 className="text-3xl font-bold text-white">
+          <h1 className="text-3xl font-bold text-foreground">
             {stats.first_name} {stats.last_name}
           </h1>
           {stats.organization && (
-            <p className="text-slate-400">{stats.organization}</p>
+            <p className="text-muted">{stats.organization}</p>
           )}
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-muted mt-2">
             Created {formatDate(stats.created_at)}
           </p>
         </div>
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-            <div className="flex items-center gap-2 text-slate-400 mb-2">
+          <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+            <div className="flex items-center gap-2 text-muted mb-2">
               <Eye className="w-5 h-5" />
               <span className="text-sm">Page Views</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.page_views}</p>
+            <p className="text-3xl font-bold text-foreground">{stats.page_views}</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-            <div className="flex items-center gap-2 text-slate-400 mb-2">
+          <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+            <div className="flex items-center gap-2 text-muted mb-2">
               <MousePointerClick className="w-5 h-5" />
               <span className="text-sm">Save Clicks</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.save_clicks}</p>
+            <p className="text-3xl font-bold text-foreground">{stats.save_clicks}</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-            <div className="flex items-center gap-2 text-slate-400 mb-2">
+          <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+            <div className="flex items-center gap-2 text-muted mb-2">
               <Download className="w-5 h-5" />
               <span className="text-sm">Downloads</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.downloads}</p>
+            <p className="text-3xl font-bold text-foreground">{stats.downloads}</p>
           </div>
 
-          <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-            <div className="flex items-center gap-2 text-slate-400 mb-2">
+          <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+            <div className="flex items-center gap-2 text-muted mb-2">
               <TrendingUp className="w-5 h-5" />
               <span className="text-sm">Conversion</span>
             </div>
-            <p className="text-3xl font-bold text-white">{stats.conversion_rate}%</p>
+            <p className="text-3xl font-bold text-foreground">{stats.conversion_rate}%</p>
           </div>
         </div>
 
         {/* Share Link */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6 mb-8">
-          <h2 className="font-semibold text-white mb-3">Share Link</h2>
+        <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6 mb-8">
+          <h2 className="font-semibold text-foreground mb-3">Share Link</h2>
           <div className="flex gap-2">
-            <div className="flex-1 bg-slate-800 rounded-lg px-4 py-3 text-white font-mono text-sm truncate">
+            <div className="flex-1 bg-panel rounded-lg px-4 py-3 text-foreground font-mono text-sm truncate">
               {shareUrl}
             </div>
             <button
               onClick={() => navigator.clipboard.writeText(shareUrl)}
-              className="px-4 py-3 rounded-lg bg-[#7393CC] text-white font-medium hover:bg-[#7393CC]/80 transition-colors"
+              className="px-4 py-3 rounded-lg bg-[#7393CC] text-foreground font-medium hover:bg-[#7393CC]/80 transition-colors"
             >
               Copy
             </button>
@@ -209,11 +209,11 @@ export default function AnalyticsPage() {
         </div>
 
         {/* Recent Activity */}
-        <div className="bg-white/5 backdrop-blur-xl rounded-2xl border border-white/10 p-6">
-          <h2 className="font-semibold text-white mb-4">Recent Activity</h2>
+        <div className="bg-surface backdrop-blur-xl rounded-2xl border border-outline p-6">
+          <h2 className="font-semibold text-foreground mb-4">Recent Activity</h2>
           
           {recentEvents.length === 0 ? (
-            <p className="text-slate-400 text-center py-8">
+            <p className="text-muted text-center py-8">
               No activity yet. Share your link to start tracking!
             </p>
           ) : (
@@ -221,16 +221,16 @@ export default function AnalyticsPage() {
               {recentEvents.map((event) => (
                 <div 
                   key={event.id}
-                  className="flex items-center justify-between p-3 bg-white/5 rounded-xl"
+                  className="flex items-center justify-between p-3 bg-surface rounded-xl"
                 >
                   <div className="flex items-center gap-3">
                     {getEventIcon(event.event_type)}
                     <div>
-                      <p className="text-white text-sm">{getEventLabel(event.event_type)}</p>
-                      <p className="text-slate-500 text-xs">{getDeviceType(event.user_agent)}</p>
+                      <p className="text-foreground text-sm">{getEventLabel(event.event_type)}</p>
+                      <p className="text-muted text-xs">{getDeviceType(event.user_agent)}</p>
                     </div>
                   </div>
-                  <p className="text-slate-400 text-sm">
+                  <p className="text-muted text-sm">
                     {formatDate(event.created_at)}
                   </p>
                 </div>
@@ -245,7 +245,7 @@ export default function AnalyticsPage() {
             href="https://donorelevate.com"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-slate-500 hover:text-slate-400 transition-colors"
+            className="text-xs text-muted hover:text-muted transition-colors"
           >
             Powered by DonorElevate
           </a>

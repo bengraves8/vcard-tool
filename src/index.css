@@ -1,5 +1,5 @@
-@import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
 
 @theme {
   /* DonorElevate Brand Colors */
@@ -35,7 +35,62 @@
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-[#1a1c3d] via-[#2A2D59] to-[#1a1c3d] min-h-screen text-white antialiased;
+    @apply min-h-screen antialiased;
+    background: var(--page-background);
+    color: var(--foreground);
     font-family: 'Poppins', system-ui, -apple-system, sans-serif;
   }
+}
+
+:root {
+  --page-background: linear-gradient(135deg, #1a1c3d, #2A2D59, #1a1c3d);
+  --page: #1a1c3d;
+  --panel: #202b40;
+  --surface: rgb(255 255 255 / 5%);
+  --surface-hover: rgb(255 255 255 / 10%);
+  --foreground: #ffffff;
+  --secondary: #cbd5e1;
+  --muted: #94a3b8;
+  --outline: rgb(255 255 255 / 10%);
+  --outline-strong: rgb(255 255 255 / 20%);
+  --accent: #93afe0;
+  --heading: #ffffff;
+  --warning: #fcd34d;
+  --danger: #f87171;
+  --success: #4ade80;
+}
+
+:root[data-theme="light"] {
+  --page-background: linear-gradient(135deg, #f4f6fb, #e8eef8, #f4f6fb);
+  --page: #f4f6fb;
+  --panel: #ffffff;
+  --surface: rgb(255 255 255 / 80%);
+  --surface-hover: #e8eef8;
+  --foreground: #242747;
+  --secondary: #3e4962;
+  --muted: #53617a;
+  --outline: #ccd5e5;
+  --outline-strong: #a8b7d0;
+  --accent: #4762a0;
+  --heading: #2A2D59;
+  --warning: #92400e;
+  --danger: #b91c1c;
+  --success: #15803d;
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-panel: var(--panel);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-foreground: var(--foreground);
+  --color-secondary: var(--secondary);
+  --color-muted: var(--muted);
+  --color-outline: var(--outline);
+  --color-outline-strong: var(--outline-strong);
+  --color-accent: var(--accent);
+  --color-heading: var(--heading);
+  --color-warning: var(--warning);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
 }
