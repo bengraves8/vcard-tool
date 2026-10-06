@@ -19,6 +19,9 @@ export interface VCardRecord {
   last_name: string
   title: string | null
   organization: string | null
+  phone_mobile_label: string | null
+  phone_work_label: string | null
+  phone_fax_label: string | null
   phone_mobile: string | null
   phone_work: string | null
   email_primary: string | null

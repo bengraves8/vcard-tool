@@ -72,8 +72,11 @@ export default function ShareablePage() {
       title: vcard.title || '',
       organization: vcard.organization || '',
       phoneMobile: vcard.phone_mobile || '',
+      phoneMobileLabel: vcard.phone_mobile_label || 'Mobile',
       phoneWork: vcard.phone_work || '',
+      phoneWorkLabel: vcard.phone_work_label || 'Work',
       phoneFax: vcard.phone_fax || '',
+      phoneFaxLabel: vcard.phone_fax_label || 'Fax',
       emailPrimary: vcard.email_primary || '',
       emailSecondary: vcard.email_secondary || '',
       links: recordLinks(vcard),
@@ -182,15 +185,16 @@ export default function ShareablePage() {
 
             {/* Contact Info */}
             <div className="space-y-3 mb-8">
-              {vcard.phone_mobile && (
-                <a 
-                  href={`tel:${vcard.phone_mobile}`}
-                  className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-surface-hover transition-colors"
-                >
-                  <Phone className="w-5 h-5 text-accent" />
-                  <span className="text-foreground">{vcard.phone_mobile}</span>
+              {[
+                { number: vcard.phone_mobile, label: vcard.phone_mobile_label?.trim() || 'Mobile' },
+                { number: vcard.phone_work, label: vcard.phone_work_label?.trim() || 'Work' },
+                { number: vcard.phone_fax, label: vcard.phone_fax_label?.trim() || 'Fax' },
+              ].filter((phone) => phone.number).map((phone, index) => (
+                <a key={index} href={`tel:${phone.number}`} className="flex items-center gap-3 p-3 bg-surface rounded-xl hover:bg-surface-hover transition-colors">
+                  <Phone className="w-5 h-5 text-accent shrink-0" />
+                  <span className="min-w-0 break-words"><span className="block text-xs text-muted">{phone.label}</span><span className="text-foreground">{phone.number}</span></span>
                 </a>
-              )}
+              ))}
               {vcard.email_primary && (
                 <a 
                   href={`mailto:${vcard.email_primary}`}

@@ -78,3 +78,5 @@ Before deploying this version, apply `supabase/migrations/20261002143612_address
 The editor, shared contact pages, and vCard downloads use these fields. Custom vCard link labels use the `X-ABLabel` extension; some contact apps may display a generic URL label instead.
 
 Run export and backward-compatibility checks with `node --test tests/vcard.test.mjs`.
+
+Phone names are editable for all three number slots and are included in previews and vCard exports. Apply `supabase/migrations/20261006155833_phone_labels.sql` before using phone labels with cloud saving. Existing records fall back to Mobile, Work, and Fax. Custom labels are preserved by Apple Contacts; other contact apps may use generic phone labels.

@@ -1,3 +1,9 @@
+export const phoneFields = [
+  { field: 'phoneMobile', labelField: 'phoneMobileLabel', fallback: 'Mobile', type: 'CELL' },
+  { field: 'phoneWork', labelField: 'phoneWorkLabel', fallback: 'Work', type: 'WORK' },
+  { field: 'phoneFax', labelField: 'phoneFaxLabel', fallback: 'Fax', type: 'FAX' },
+] as const
+
 export interface ContactLink {
   label: string
   url: string
@@ -33,8 +39,11 @@ export interface VCardData {
   title: string
   organization: string
   phoneMobile: string
+  phoneMobileLabel: string
   phoneWork: string
+  phoneWorkLabel: string
   phoneFax: string
+  phoneFaxLabel: string
   emailPrimary: string
   emailSecondary: string
   links: ContactLink[]
@@ -53,8 +62,11 @@ export const initialData: VCardData = {
   title: '',
   organization: '',
   phoneMobile: '',
+  phoneMobileLabel: 'Mobile',
   phoneWork: '',
+  phoneWorkLabel: 'Work',
   phoneFax: '',
+  phoneFaxLabel: 'Fax',
   emailPrimary: '',
   emailSecondary: '',
   links: [
@@ -85,9 +97,15 @@ export function generateVCard(data: VCardData, options?: { includePhoto?: boolea
 
   if (data.organization) lines.push(`ORG:${data.organization}`)
   if (data.title) lines.push(`TITLE:${data.title}`)
-  if (data.phoneMobile) lines.push(`TEL;TYPE=CELL:${data.phoneMobile}`)
-  if (data.phoneWork) lines.push(`TEL;TYPE=WORK:${data.phoneWork}`)
-  if (data.phoneFax) lines.push(`TEL;TYPE=FAX:${data.phoneFax}`)
+  phoneFields.forEach(({ field, labelField, fallback, type }, index) => {
+    const number = data[field].trim()
+    if (!number) return
+    const label = data[labelField]?.trim() || fallback
+    // Keep standard phone types for default labels; custom names use generic voice.
+    const phoneType = label.toLowerCase() === fallback.toLowerCase() ? type : 'VOICE'
+    lines.push(`phone${index + 1}.TEL;TYPE=${phoneType}:${escapeText(number)}`)
+    lines.push(`phone${index + 1}.X-ABLabel:${escapeText(label)}`)
+  })
   if (data.emailPrimary) lines.push(`EMAIL;TYPE=INTERNET,PREF:${data.emailPrimary}`)
   if (data.emailSecondary) lines.push(`EMAIL;TYPE=INTERNET:${data.emailSecondary}`)
   data.links.forEach((link, index) => {

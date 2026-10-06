@@ -1,4 +1,4 @@
-import { initialData, generateVCard, safeLinkUrl, type VCardData } from './lib/vcard'
+import { initialData, phoneFields, generateVCard, safeLinkUrl, type VCardData } from './lib/vcard'
 import { useState, useId, useRef, useCallback, useEffect } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import {
@@ -218,20 +218,13 @@ function VCardPreview({ data }: { data: VCardData }) {
       </div>
 
       <div className="space-y-2 text-sm">
-        {data.phoneMobile && (
-          <div className="flex items-center gap-2 text-secondary">
+        {phoneFields.filter(({ field }) => data[field]).map(({ field, labelField, fallback }) => (
+          <div key={field} className="flex items-center gap-2 text-secondary flex-wrap">
             <Phone className="w-4 h-4 text-accent" />
-            <span>{data.phoneMobile}</span>
-            <span className="text-xs text-muted">Mobile</span>
+            <span>{data[field]}</span>
+            <span className="text-xs text-muted break-words">{data[labelField].trim() || fallback}</span>
           </div>
-        )}
-        {data.phoneWork && (
-          <div className="flex items-center gap-2 text-secondary">
-            <Phone className="w-4 h-4 text-accent" />
-            <span>{data.phoneWork}</span>
-            <span className="text-xs text-muted">Work</span>
-          </div>
-        )}
+        ))}
         {data.emailPrimary && (
           <div className="flex items-center gap-2 text-secondary">
             <Mail className="w-4 h-4 text-accent" />
@@ -312,12 +305,12 @@ function IPhoneContactPreview({ data }: { data: VCardData }) {
 
       {/* Contact Details */}
       <div className="bg-[#2c2c2e] mx-3 rounded-xl mb-4 divide-y divide-white/5">
-        {data.phoneMobile && (
-          <div className="px-4 py-3">
-            <p className="text-[#007AFF] text-sm">{data.phoneMobile}</p>
-            <p className="text-gray-500 text-xs">mobile</p>
+        {phoneFields.filter(({ field }) => data[field]).map(({ field, labelField, fallback }) => (
+          <div key={field} className="px-4 py-3">
+            <p className="text-[#007AFF] text-sm">{data[field]}</p>
+            <p className="text-gray-400 text-xs break-words">{data[labelField].trim() || fallback}</p>
           </div>
-        )}
+        ))}
         {data.emailPrimary && (
           <div className="px-4 py-3">
             <p className="text-[#007AFF] text-sm">{data.emailPrimary}</p>
@@ -422,8 +415,11 @@ function App() {
               title: data.title || null,
               organization: data.organization || null,
               phone_mobile: data.phoneMobile || null,
+              phone_mobile_label: data.phoneMobileLabel.trim() || 'Mobile',
               phone_work: data.phoneWork || null,
+              phone_work_label: data.phoneWorkLabel.trim() || 'Work',
               phone_fax: data.phoneFax || null,
+              phone_fax_label: data.phoneFaxLabel.trim() || 'Fax',
               email_primary: data.emailPrimary || null,
               email_secondary: data.emailSecondary || null,
               links: data.links,
@@ -460,8 +456,11 @@ function App() {
               title: data.title || null,
               organization: data.organization || null,
               phone_mobile: data.phoneMobile || null,
+              phone_mobile_label: data.phoneMobileLabel.trim() || 'Mobile',
               phone_work: data.phoneWork || null,
+              phone_work_label: data.phoneWorkLabel.trim() || 'Work',
               phone_fax: data.phoneFax || null,
+              phone_fax_label: data.phoneFaxLabel.trim() || 'Fax',
               email_primary: data.emailPrimary || null,
               email_secondary: data.emailSecondary || null,
               links: data.links,
@@ -623,30 +622,14 @@ function App() {
                     <Phone className="w-5 h-5 text-accent" />
                     Contact Details
                   </h2>
-                  <InputField
-                    icon={Phone}
-                    label="Mobile Phone"
-                    value={data.phoneMobile}
-                    onChange={(v) => updateField('phoneMobile', v)}
-                    placeholder="+1 (555) 000-0000"
-                    type="tel"
-                  />
-                  <InputField
-                    icon={Phone}
-                    label="Work Phone"
-                    value={data.phoneWork}
-                    onChange={(v) => updateField('phoneWork', v)}
-                    placeholder="+1 (555) 000-0001"
-                    type="tel"
-                  />
-                  <InputField
-                    icon={Phone}
-                    label="Fax (Optional)"
-                    value={data.phoneFax}
-                    onChange={(v) => updateField('phoneFax', v)}
-                    placeholder="+1 (555) 000-0002"
-                    type="tel"
-                  />
+                  <p className="text-sm text-muted">Choose a name for each phone number, such as Cell phone, Personal, or Mom’s phone.</p>
+                  {phoneFields.map(({ field, labelField, fallback }, index) => (
+                    <fieldset key={field} className="rounded-xl border border-outline p-4 space-y-3 min-w-0">
+                      <legend className="px-2 text-sm text-muted">Phone {index + 1} (Optional)</legend>
+                      <InputField icon={Phone} label={`Phone ${index + 1} name`} value={data[labelField]} onChange={(v) => updateField(labelField, v)} placeholder={fallback} />
+                      <InputField icon={Phone} label={`Phone ${index + 1} number`} value={data[field]} onChange={(v) => updateField(field, v)} placeholder="+1 (555) 000-0000" type="tel" />
+                    </fieldset>
+                  ))}
                   <InputField
                     icon={Mail}
                     label="Primary Email"

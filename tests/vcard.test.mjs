@@ -42,3 +42,19 @@ test('second-line-only address exports and QR output omits photos', () => {
   assert.ok(generateVCard(data).includes('PHOTO;'))
   assert.ok(!generateVCard(data, { includePhoto: false }).includes('PHOTO;'))
 })
+
+test('custom phone labels stay paired with their numbers and separate from link labels', () => {
+  const result = generateVCard({ ...initialData, phoneMobile: '+1 312 555 0100', phoneMobileLabel: 'Cell phone', phoneWork: '+1 312 555 0101', phoneWorkLabel: "Mom's phone", phoneFax: '+1 312 555 0102', phoneFaxLabel: 'Personal', links: [{ label: 'Website', url: 'https://example.com' }] })
+  assert.ok(result.includes("phone2.TEL;TYPE=VOICE:+1 312 555 0101\r\nphone2.X-ABLabel:Mom's phone"))
+  assert.ok(result.includes('phone3.X-ABLabel:Personal'))
+  assert.ok(result.includes('phone1.X-ABLabel:Cell phone'))
+  assert.ok(result.includes('item1.X-ABLabel:Website'))
+  assert.ok(!result.includes('TYPE=FAX'))
+})
+
+test('blank phone names use defaults, empty numbers are omitted, and label newlines are escaped', () => {
+  const result = generateVCard({ ...initialData, phoneMobile: '123', phoneMobileLabel: '  ', phoneWork: '', phoneWorkLabel: 'Unused', phoneFax: '456', phoneFaxLabel: 'Office; West\nFN:Injected' })
+  assert.ok(result.includes('phone1.TEL;TYPE=CELL:123\r\nphone1.X-ABLabel:Mobile'))
+  assert.ok(!result.includes('Unused'))
+  assert.ok(result.includes('X-ABLabel:Office\\; West\\nFN:Injected'))
+})
